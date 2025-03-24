@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useState } from "react";
+import { createContext, ReactNode, useEffect, useState } from "react";
 import { ProductsProps } from "../pages/home";
 
 interface CartContextData {
@@ -45,6 +45,7 @@ function CartProvider({ children }: CartProviderProps) {
 
       setCart(cartList);
       totalResultCart(cartList);
+      updateLocalStorage(cartList)
       return;
     }
 
@@ -58,6 +59,7 @@ function CartProvider({ children }: CartProviderProps) {
 
     setCart((products) => [...products, data]); //adiciona o que já tem e coloca um novo
     totalResultCart([...cart, data]);
+    updateLocalStorage([...cart, data])
   }
 
   function formatPrice(value: number): string {
@@ -78,12 +80,14 @@ function CartProvider({ children }: CartProviderProps) {
         cartList[indexItem].total - cartList[indexItem].price;
       setCart(cartList);
       totalResultCart(cartList);
+      updateLocalStorage(cartList)
       return;
     }
 
     const removeItem = cart.filter((item) => item.id !== product.id);
     setCart(removeItem);
     totalResultCart(removeItem);
+    updateLocalStorage(removeItem)
   }
 
   function totalResultCart(items: CartProps[]) {
@@ -95,6 +99,21 @@ function CartProvider({ children }: CartProviderProps) {
     const resultFormat = formatPrice(result);
     setTotal(resultFormat);
   }
+
+  function updateLocalStorage(products: CartProps[]) {
+    
+    localStorage.setItem("@cartList",JSON.stringify(products))
+    
+  }
+
+
+  useEffect(() => {
+    const loadProducts = localStorage.getItem("@cartList");
+    if (loadProducts) {
+      setCart(JSON.parse(loadProducts))
+     totalResultCart(JSON.parse(loadProducts))
+    }
+  },[])
 
   return (
     <CartContext.Provider
